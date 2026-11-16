@@ -44,6 +44,10 @@ jobs:
         run: pnpm test
       - name: Build
         run: pnpm build
+      - name: Smoke test Worker
+        run: pnpm test:smoke
+      - name: Check deployment package
+        run: pnpm exec wrangler deploy --dry-run --containers-rollout=none
 
   sandbox:
     runs-on: ubuntu-latest

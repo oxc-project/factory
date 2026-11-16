@@ -11,6 +11,9 @@ Oxc disables the upstream Astro persona accounts in `.github/factory.yml`.
 Use the Cloudflare account approved for Oxc infrastructure. The old triage
 Action's Workers AI token is not necessarily a deployment token. Deployment
 needs Workers, Durable Objects, Workflows, Containers, and R2 permissions.
+The existing Oxc CI token was denied Containers (403) and Workflows (401) in
+[the credential preflight](https://github.com/oxc-project/oxc/actions/runs/43802011137).
+Provide a deployment token separately from inference credentials.
 Create `oxc-factory-private-reports` and `oxc-factory-adversary-artifacts` in that
 account before deploying. Configure the named Gateway to accept authenticated
 requests from the inference token.
@@ -37,6 +40,7 @@ pnpm cf-typegen
 pnpm check:types
 pnpm test
 pnpm build
+pnpm test:smoke
 pnpm exec wrangler deploy --dry-run
 pnpm exec wrangler deploy
 ```
