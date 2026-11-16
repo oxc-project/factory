@@ -148,33 +148,16 @@ export function prWritingInstructions(
 	prWriterSkill?: PrWriterSkillReference,
 ): string {
 	const skillInstruction = prWriterSkill
-		? `Activate the \`${prWriterSkill.name}\` skill (${prWriterSkill.directory}/SKILL.md) and follow its repository-specific PR writing guidance in addition to the requirements below.\n\n`
+		? `Activate the \`${prWriterSkill.name}\` skill (${prWriterSkill.directory}/SKILL.md) and follow its repository-specific PR writing guidance.\n\n`
 		: '';
 
-	return `${skillInstruction}## PR writing requirements
+	return `${skillInstruction}PR writing requirements:
 
-- Write a concise, descriptive title in plain language. Do not use a conventional commit prefix such as "fix:" or "feat:".
-- Keep the body brief and use exactly these sections:
-
-\`\`\`markdown
-## Changes
-
-- <What behavior changed and why it matters>
-- <Reviewer-useful implementation detail and impact>
-
-## Testing
-
-- <Test code added or changed and what it covers>
-
-## Docs
-
-- <Whether docs are needed, with a link or a brief reason they are not>
-\`\`\`
-
-- In Changes, describe behavior, implementation, and impact. Do not mention tests, changesets, bot activity, or confirmation process.
-- In Testing, describe test code added or changed. Do not list commands, pass counts, or that tests passed. If no tests changed, say why.
-- Make the Docs decision explicit.
-- End the body with "Closes #${issueNumber}".`;
+- Use a concise, scoped Conventional Commit title, such as "fix(parser): handle trailing comma".
+- Keep the body to a brief explanation of the problem and why the change fixes it.
+- Do not add headings or sections such as Tests, Testing, Evidence, or Docs.
+- Include "Closes #${issueNumber}" and "Automated Factory fix (AI-assisted).".
+- Keep detailed validation in the triage report; never invent results.`;
 }
 
 function formatLabelList(labels: RepoLabel[]): string {

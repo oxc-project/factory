@@ -65,6 +65,7 @@ import {
 	formatFailureComment,
 	MAX_TRIAGE_FAILURES,
 } from './failure.ts';
+import { fixEligibility } from './fix-policy.ts';
 import { route, type TriageAction } from './fsm.ts';
 import {
 	allTriageLabels,
@@ -175,6 +176,7 @@ interface RoutedIssue {
 		title: string;
 		body: string;
 		state: string;
+		assignees: string[];
 		authorLogin: string;
 		authorAssociation: string;
 		labels: string[];
@@ -498,6 +500,7 @@ export class TriageWorkflow extends WorkflowEntrypoint<
 			repo: params.repo,
 			issueNumber: params.issueNumber,
 			issueTitle: issue.title,
+			issueAssignees: issue.assignees,
 			issueBody: issue.body,
 			issueAuthor: issue.authorLogin || 'ghost',
 			issueAuthorAssociation: issue.authorAssociation,
@@ -745,7 +748,25 @@ export class TriageWorkflow extends WorkflowEntrypoint<
 					progress,
 				);
 
-				if (verify.verdict !== 'intended-behavior') {
+				const fixPermission = await step.do(
+					'check issue before fixing',
+					STEP_RETRIES,
+					async () => {
+						const latest = await fetchIssueDetails(
+							await client(),
+							params.owner,
+							params.repo,
+							params.issueNumber,
+						);
+						return fixEligibility(
+							verify.verdict,
+							diagnose.confidence,
+							latest.state,
+							latest.assignees,
+						);
+					},
+				);
+				if (fixPermission.allowed) {
 					const fix = await pipelineStep(
 						'fix',
 						fixStepPrompt(),
@@ -766,6 +787,9 @@ export class TriageWorkflow extends WorkflowEntrypoint<
 						'fix attempt complete',
 						progress,
 					);
+				} else {
+					progress.skipped.fix = fixPermission.reason;
+					progress.current = 'publish';
 				}
 			}
 
@@ -1271,6 +1295,7 @@ export class TriageWorkflow extends WorkflowEntrypoint<
 					repo: params.repo,
 					issueNumber: params.issueNumber,
 					issueTitle: issue.title,
+					issueAssignees: issue.assignees,
 					issueBody: issue.body,
 					conversation: issue.conversation,
 					model: triage.verificationModel,
@@ -1392,6 +1417,7 @@ export class TriageWorkflow extends WorkflowEntrypoint<
 					repo: params.repo,
 					issueNumber: params.issueNumber,
 					issueTitle: issue.title,
+					issueAssignees: issue.assignees,
 					issueBody: issue.body,
 					branch,
 					defaultBranch: params.defaultBranch,
@@ -1680,6 +1706,7 @@ async function loadAndRoute(
 			title: details.title,
 			body: details.body.slice(0, 20_000),
 			state: details.state,
+			assignees: details.assignees,
 			authorLogin: details.author.login,
 			authorAssociation: details.authorAssociation,
 			labels: details.labels,

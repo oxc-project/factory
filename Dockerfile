@@ -4,11 +4,15 @@ FROM docker.io/cloudflare/sandbox:0.12.5
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
-		git ripgrep curl ca-certificates build-essential pkg-config \
+		git ripgrep curl ca-certificates build-essential pkg-config python3 clang cmake \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Package manager for reproducing/building target repositories.
-RUN npm install -g pnpm@10
+RUN npm install -g corepack@0.34.6 @ast-grep/cli@0.44.0 \
+	&& corepack enable \
+	&& corepack prepare pnpm@12.7.0 --activate
+
+ENV INSTA_REQUIRE_FULL_MATCH=1
 
 # Rust support, for repositories like @astrojs/compiler-rs.
 #
@@ -27,6 +31,13 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 	PATH=/usr/local/cargo/bin:$PATH
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 	| sh -s -- -y --no-modify-path --profile minimal --default-toolchain none \
+	&& chmod -R a+w "$RUSTUP_HOME" "$CARGO_HOME"
+
+# Oxc's Rust verification tools are shared by every triage container. Remove
+# the build toolchain after installation; the target checkout selects its own.
+RUN rustup toolchain install stable --profile minimal \
+	&& cargo +stable install --locked just cargo-insta cargo-shear@1.13.1 \
+	&& rustup toolchain uninstall stable \
 	&& chmod -R a+w "$RUSTUP_HOME" "$CARGO_HOME"
 
 # Adversary agent commands run as this user while the sandbox control plane
