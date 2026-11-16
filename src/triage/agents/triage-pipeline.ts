@@ -162,6 +162,7 @@ export function TriagePipeline() {
 		'Do not fetch the issue from GitHub; the full details are below.',
 		'',
 		`## Issue #${input.issueNumber}: ${input.issueTitle}`,
+		`Assignees: ${input.issueAssignees.length ? input.issueAssignees.join(', ') : '(none)'}. Leave implementation to any assignees.`,
 		`Author: @${input.issueAuthor} (${input.issueAuthorAssociation})`,
 		'',
 		input.issueBody,

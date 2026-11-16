@@ -61,6 +61,15 @@ import {
 export const githubChannel = createGitHubChannel<AppHonoEnv>({
 	webhookSecret: requiredProcessEnv('GITHUB_WEBHOOK_SECRET'),
 	async webhook({ c, delivery }) {
+		const repository = (
+			delivery.payload as { repository?: { full_name?: string } }
+		).repository;
+		if (repository?.full_name !== c.env.FACTORY_REPOSITORY) {
+			return Response.json({
+				accepted: false,
+				reason: 'Repository is outside this deployment.',
+			});
+		}
 		const dispatch = routeDelivery(
 			delivery.name,
 			delivery.payload as Parameters<typeof routeDelivery>[1],

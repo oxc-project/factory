@@ -1,4 +1,12 @@
-# Factory
+# Oxc Factory
+
+Oxc's fork of [withastro/factory](https://github.com/withastro/factory).
+The Worker is scoped to `oxc-project/oxc`; it uses Oxc's repository skills,
+leaves fixes to issue assignees, and writes minimal Conventional Commit PRs.
+See [Oxc deployment](docs/oxc-deployment.md) for setup and cutover.
+
+The upstream architecture and capability documentation follows.
+
 
 A software factory: one Cloudflare Worker that receives GitHub webhooks and
 routes them through a deterministic dispatcher to durable
@@ -13,7 +21,7 @@ Built by combining [withastro/astro-review](https://github.com/withastro/astro-r
 
 ## Scope
 
-Factory is the triage and review automation **for the Astro repository's own
+Upstream Factory is the triage and review automation **for the Astro repository's own
 use** (`withastro/astro`): its routing rules, labels, skills, and the
 release-security capability are tuned for how the Astro team works. It is
 **not a general-purpose tool** for anyone to install — the package is private
@@ -435,10 +443,8 @@ may add domain-specific criteria but cannot weaken the built-in correctness and 
 factory's review and triage defaults live in `skills/review/` and `skills/triage/`;
 a repository can replace either one by committing a skill under
 `.agents/skills/` and pointing the capability's `skill` setting at it.
-Triage pull requests use Factory's built-in `Changes`, `Testing`, and `Docs`
-format. A repository can add its own PR writing guidance with
-`triage.prWriterSkill`; that skill is applied in addition to the built-in
-format.
+This fork writes scoped Conventional Commit titles and brief PR bodies without
+section headings. Repository guidance comes from `triage.prWriterSkill`.
 
 (The bundled entry file is stored as `skill.md` — Flue's vite plugin treats
 imports literally named `SKILL.md` as packaged skills, and we need the raw
